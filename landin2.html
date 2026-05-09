@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Бушава Игротека</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bushavaOrange: '#FF6B35',
+                        bukvozderBlue: '#004E89',
+                        veselaZolta: '#FFD23F',
+                        toplaCrvena: '#EE4266',
+                        svetloZelena: '#4CAF50',
+                        nebesnoSina: '#64B5F6',
+                        temna: '#333333'
+                    },
+                    fontFamily: { 
+                        sans: ['Nunito', 'sans-serif'],
+                        kids: ['"Baloo 2"', 'sans-serif'],
+                        kids2: ['"Fredoka"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Baloo+2:wght@500;700;800&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Fredoka', sans-serif;
+            user-select: none; 
+            touch-action: manipulation; 
+        }
+
+        /* ПОЗАДИНА - Преименувана во bg.jpg */
+        .glavna-pozadina {
+            background-color: #a8edea; 
+            background-image: url('bg.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        /* Шарени сенки (без црни) */
+        .btn-3d { transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-3d:active { transform: translateY(6px) scale(0.95); box-shadow: none !important; }
+        
+        .click-pop { transition: all 0.1s; }
+        .click-pop:active { transform: scale(0.85) translateY(4px); box-shadow: none !important; }
+
+        .screen { display: none; opacity: 1; transition: opacity 0.5s ease-in-out; }
+        .screen.active { display: flex; }
+        .screen.fade-out { opacity: 0; }
+        
+        ::-webkit-scrollbar { display: none; }
+
+        .unity-container {
+            position: relative; width: 100%; max-width: 1024px; aspect-ratio: 16/9;
+            background-color: #000; border-radius: 1.5rem; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            border: 4px solid #D0D0D0;
+        }
+        
+        .avatar-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 4px solid transparent; }
+        .avatar-btn.selected {
+            border-color: #EE4266; background-color: #FFD23F;
+            transform: scale(1.2) translateY(-5px);
+            box-shadow: 0 6px 0 #C2185B;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-10px) scale(1.02);
+            z-index: 10;
+        }
+        .card-hover { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-1deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+            100% { transform: translateY(0px) rotate(-1deg); }
+        }
+        .floating { animation: float 3s ease-in-out infinite; }
+        
+        /* ОБЛАЦИ */
+        @keyframes cloudTravel {
+            0% { transform: translateX(0vw); opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { transform: translateX(120vw); opacity: 0.8; }
+        }
+        .cloud { position: absolute; left: -20%; animation: cloudTravel linear infinite; filter: drop-shadow(0 4px 0 rgba(255,255,255,0.4)); z-index: -1; }
+        
+        .c1 { top: 5%; animation-duration: 35s; animation-delay: -10s; font-size: 4rem; }
+        .c2 { top: 35%; animation-duration: 45s; animation-delay: -35s; font-size: 5rem; opacity: 0.7; }
+        .c3 { top: 65%; animation-duration: 30s; animation-delay: -15s; font-size: 3.5rem; }
+        .c4 { top: 15%; animation-duration: 50s; animation-delay: -45s; font-size: 6rem; opacity: 0.6; }
+        .c5 { top: 80%; animation-duration: 40s; animation-delay: -25s; font-size: 4.5rem; }
+        .c6 { top: 50%; animation-duration: 32s; animation-delay: -5s; font-size: 3rem; }
+        .c7 { top: 25%; animation-duration: 42s; animation-delay: -30s; font-size: 5.5rem; opacity: 0.8; }
+        .c8 { top: 85%; animation-duration: 38s; animation-delay: -40s; font-size: 4rem; opacity: 0.9; }
+
+        /* Анимација за појавување на картичките (Сега се активира само кога екранот е активен!) */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5) translateY(50px); }
+            70% { transform: scale(1.05) translateY(-10px); opacity: 1; }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        /* Почетна состојба - невидливи */
+        .game-card { opacity: 0; }
+        
+        /* Анимација кога родителот ја има класата active */
+        .screen.active .animate-pop-1 { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.1s; }
+        .screen.active .animate-pop-2 { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.2s; }
+        .screen.active .animate-pop-3 { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.3s; }
+        .screen.active .animate-pop-4 { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 0.4s; }
+        
+    </style>
+</head>
+<body class="min-h-screen w-screen overflow-x-hidden overflow-y-auto text-temna flex flex-col font-sans relative glavna-pozadina">
+    <!-- LANDING PAGE - LOGO -->
+    <main id="screen-splash" class="screen active h-full w-full flex-col items-center justify-center bg-[#FCF6B5] absolute inset-0 z-[100]">
+        <img src="img/logo.png" alt="Бушава Азбука" class="w-4/5 max-w-sm mb-12 animate-pulse drop-shadow-2xl">
+        <div class="w-48 md:w-64 h-6 bg-white rounded-full border-4 border-[#D4CFA3] overflow-hidden shadow-[0_4px_0_#D4CFA3]">
+            <div id="splash-bar" class="h-full bg-toplaCrvena w-0 transition-all duration-[1500ms] ease-out"></div>
+        </div>
+    </main>
+
+    <!-- SCREEN WELCOME - VNESI IME -->
+    <main id="screen-welcome" class="screen min-h-screen w-full flex items-center justify-center absolute inset-0 z-50 backdrop-blur-md bg-nebesnoSina/60 p-2 overflow-y-auto">
+        
+        <div class="cloud c1">☁️</div><div class="cloud c2">☁️</div>
+        <div class="cloud c3">☁️</div><div class="cloud c4">☁️</div>
+    
+        <div class="bg-[#FFFDE7] rounded-[2rem] border-4 border-[#D4CFA3] shadow-[6px_6px_0_#D4CFA3] max-w-xl w-full flex flex-col items-center p-3 md:px-4 md:py-12 relative z-10 scale-[0.82] origin-top mt-2">
+            
+            <h1 class="text-2xl md:text-4xl font-black text-green-700 mb-3 text-center leading-tight"
+                >
+                Кој игра денес?
+            </h1>
+    
+    <div class="w-full mb-3">
+        <p class="text-center font-black text-bukvozderBlue text-lg md:text-xl mb-2">
+            Внеси име
+        </p>
+    </div>
+    
+            <div id="random-names-container" class="flex justify-center flex-wrap gap-2 mb-3 w-full px-1"></div>
+    
+            <div class="bg-white border-3 border-[#E0E0E0] rounded-2xl w-full max-w-sm h-14 md:h-16 mb-4 flex items-center justify-center relative shadow-inner overflow-hidden">
+                
+                <span id="name-display" class="text-2xl md:text-3xl font-black text-bukvozderBlue tracking-wide">
+                    _
+                </span>
+    
+                <button onclick="deleteLetter()" class="absolute right-2 bg-[#EE4266] text-white font-black text-lg px-3 py-1 rounded-xl active:bg-red-600 border-2 border-[#C2185B] shadow-[0_3px_0_#C2185B] click-pop">
+                    ⌫
+                </button>
+            </div>
+    
+            <div id="keyboard" class="grid grid-cols-7 gap-1.5 mb-4 w-full max-w-lg scale-90 origin-top"></div>
+    
+            <button onclick="finishSetup()" class="w-full max-w-xs bg-[#4CAF50] text-white text-xl md:text-2xl font-black py-2 rounded-[1.5rem] shadow-[0_6px_0_#2E7D32] border-4 border-[#2E7D32] btn-3d z-20">
+                ОДИМЕ! 
+            </button>
+        </div>
+    </main>
+
+    <!-- HEADER -->
+    <header id="global-header" class="w-full flex justify-between items-center p-4 md:p-6 bg-white/90 backdrop-blur-md shadow-md z-40 shrink-0 hidden border-b-4 border-[#E0E0E0]">
+        
+        <button onclick="goToHome()" class="bg-[#FFD23F] text-temna font-black text-xl md:text-2xl py-2 px-5 rounded-2xl border-2 border-[#D4AC0D] shadow-[0_6px_0_#D4AC0D] btn-3d flex items-center gap-2">
+            <span>Назад</span>
+        </button>
+        
+        <div class="flex items-center gap-3 bg-white border-4 border-[#E0E0E0] py-2 px-6 rounded-full shadow-[0_4px_0_#D0D0D0]">
+            <span id="header-avatar" class="text-2xl font-black text-bukvozderBlue">🦁</span>
+            <span id="header-name" class="text-2xl font-black text-bukvozderBlue">Сонце</span>
+        </div>
+
+        <button id="audio-btn" onclick="toggleAudio()" class="bg-[#64B5F6] text-white font-black text-2xl py-2 px-5 rounded-2xl border-2 border-[#1E88E5] shadow-[0_6px_0_#1E88E5] btn-3d">
+            🔊
+        </button>
+    </header>
+    
+    <!-- HOMESCREEN -->
+    <main id="screen-home"
+        class="screen w-full min-h-screen overflow-y-auto bg-[#87CEFA] relative px-4 py-8 md:px-8">
+        <!-- SKY BACKGROUND -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    
+            <!-- clouds -->
+            <div class="absolute top-12 left-10 w-52 h-20 bg-white/80 rounded-full"></div>
+            <div class="absolute top-6 left-32 w-24 h-24 bg-white/80 rounded-full"></div>
+    
+            <div class="absolute top-24 right-16 w-60 h-24 bg-white/80 rounded-full"></div>
+            <div class="absolute top-12 right-40 w-28 h-28 bg-white/80 rounded-full"></div>
+    
+            <!-- decorative dots -->
+            <div class="absolute top-16 left-1/2 w-6 h-6 rounded-full bg-white/40 blur-sm"></div>
+            <div class="absolute top-40 left-1/4 w-4 h-4 rounded-full bg-white/50"></div>
+            <div class="absolute top-28 right-1/3 w-5 h-5 rounded-full bg-white/30"></div>
+    
+            <!-- floating bubbles -->
+            <div class="absolute bottom-32 left-20 w-20 h-20 rounded-full bg-white/20 blur-xl"></div>
+            <div class="absolute bottom-16 right-28 w-28 h-28 rounded-full bg-pink-200/30 blur-xl"></div>
+        </div>
+    
+        <!-- MAIN CONTAINER -->
+        <div
+            class="relative z-10 max-w-7xl mx-auto rounded-[50px] overflow-hidden border-[10px] border-white shadow-[0_25px_80px_rgba(0,0,0,0.18)] bg-[#FFF9EC]">
+    
+            <!-- HERO -->
+            <section
+                class="relative overflow-hidden bg-gradient-to-r from-[#FFB84D] via-[#FFC93D] to-[#FFD84D] px-6 md:px-16 pt-14 pb-20 text-center">
+    
+                <!-- blobs -->
+                <div class="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-0 right-0 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl"></div>
+    
+                <!-- decorative blocks
+                <div class="absolute left-8 bottom-4 w-28 h-28 md:w-40 md:h-40 bg-white/10 rounded-[40px] rotate-[-10deg] blur-sm"></div>
+    
+                <div class="absolute right-8 bottom-4 w-28 h-28 md:w-40 md:h-40 bg-pink-300/20 rounded-[40px] rotate-[10deg] blur-sm"></div>
+     -->
+                <!-- badge -->
+                <div
+                    class="relative inline-flex items-center gap-3 bg-white/20 backdrop-blur-md px-6 py-3 rounded-full border border-white/30 shadow-lg">
+    
+                    <div class="w-4 h-4 rounded-full bg-white"></div>
+    
+                    <p class="text-white font-black text-lg md:text-xl tracking-wide">
+                        ЕДУКАТИВНИ ИГРИ ЗА ДЕЦА
+                    </p>
+                </div>
+    
+                <h1 class="relative mt-8 text-5xl md:text-8xl font-black text-white leading-[0.95]"
+                    style="text-shadow: 5px 5px 0 rgba(0,0,0,0.12);">
+                    БУШАВА<br>ИГРОТЕКА
+                </h1>
+    
+                <p class="relative mt-6 max-w-3xl mx-auto text-xl md:text-3xl font-bold text-white/95">
+                    Играј, учи и откривај нови авантури
+                </p>
+    
+                <!-- floating cards -->
+                <div
+                    class="hidden md:flex absolute left-20 top-20 bg-white px-5 py-3 rounded-2xl shadow-xl rotate-20 items-center gap-2 floating">
+                    <div class="w-4 h-4 rounded-full bg-[#FF8B5E]"></div>
+    
+                    <span class="font-black text-gray-700">Букви</span>
+                </div>
+    
+                <div
+                    class="hidden md:flex absolute right-20 top-28 bg-white px-5 py-3 rounded-2xl shadow-xl rotate-[8deg] items-center gap-2 floating">
+    
+                    <div class="w-4 h-4 rounded-full bg-[#49BFFF]"></div>
+    
+                    <span class="font-black text-gray-700">Креативност</span>
+                </div>
+                <!-- floating card 3 -->
+                <div
+                    class="hidden md:flex absolute left-32 bottom-32 bg-white px-5 py-3 rounded-2xl shadow-xl rotate-[12deg] items-center gap-2 floating">
+                    
+                    <div class="w-4 h-4 rounded-full bg-[#7CFF6B]"></div>
+                
+                    <span class="font-black text-gray-700">Логика</span>
+                </div>
+                
+                <!-- floating card 4 -->
+                <div
+                    class="hidden md:flex absolute right-20 bottom-32 bg-white px-5 py-3 rounded-2xl shadow-xl rotate-[-12deg] items-center gap-2 floating">
+                    
+                    <div class="w-4 h-4 rounded-full bg-[#FF5ED6]"></div>
+                
+                    <span class="font-black text-gray-700">Забава</span>
+                </div>
+    
+            </section>
+    
+            <!-- GAMES SECTION -->
+            <section class="relative px-5 md:px-12 py-12 md:py-16">
+    
+                <!-- road -->
+                <!-- <div
+                    class="hidden lg:block absolute left-1/2 top-0 bottom-0 w-5 bg-[#FFD965] rounded-full -translate-x-1/2 opacity-80">
+                </div> -->
+    
+                <div class="space-y-10 relative z-10">
+    
+                    <!-- GAME 1 -->
+                    <div class="flex flex-col lg:flex-row items-center gap-6">
+    
+                        <div
+                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#FF9B71] to-[#FF6B3D] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
+    
+                            <div class="w-16 h-16 rounded-[22px] bg-white/30 backdrop-blur-md border border-white/40"></div>
+    
+                            <div
+                                class="absolute -top-2 -right-2 bg-white rounded-full px-3 py-1 text-sm font-black text-[#FF6B3D] shadow">
+                                NEW
+                            </div>
+                        </div>
+    
+                        <div onclick="openUnityGame('Бушаво Слово')"
+                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#FFD4C7] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
+    
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    
+                                <div>
+                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
+                                        Бушаво Слово
+                                    </h2>
+    
+                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
+                                        Научи букви, зборови и изговор преку весели игри и анимации.
+                                    </p>
+                                </div>
+    
+                                <button
+                                    class="bg-gradient-to-r from-[#FF8B5E] to-[#FF6B3D] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
+                                    ИГРАЈ
+                                </button>
+    
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- GAME 2 -->
+                    <div class="flex flex-col lg:flex-row-reverse items-center gap-6">
+    
+                        <div
+                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#5CCBFF] to-[#2D9CFF] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
+    
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="w-6 h-6 rounded-lg bg-white/80"></div>
+                                <div class="w-6 h-6 rounded-lg bg-white/60"></div>
+                                <div class="w-6 h-6 rounded-lg bg-white/60"></div>
+                                <div class="w-6 h-6 rounded-lg bg-white/80"></div>
+                            </div>
+                        </div>
+    
+                        <div onclick="openUnityGame('Збороград')"
+                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#D6F1FF] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
+    
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    
+                                <div>
+                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
+                                        Збороград
+                                    </h2>
+    
+                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
+                                        Решавај загатки и откривај нови зборови низ забавни предизвици.
+                                    </p>
+                                </div>
+    
+                                <button
+                                    class="bg-gradient-to-r from-[#49BFFF] to-[#2D9CFF] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
+                                    ИГРАЈ
+                                </button>
+    
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- GAME 3 -->
+                    <div class="flex flex-col lg:flex-row items-center gap-6">
+    
+                        <div
+                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#FFE26A] to-[#FFBE0B] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
+    
+                            <div class="w-16 h-16 rounded-full border-4 border-white/70"></div>
+                        </div>
+    
+                        <div onclick="openUnityGame('Бушава Трага')"
+                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#FFF0B7] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
+    
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    
+                                <div>
+                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
+                                        Бушава Трага
+                                    </h2>
+    
+                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
+                                        Цртај, бои и следи форми во креативен свет полн со бои.
+                                    </p>
+                                </div>
+    
+                                <button
+                                    class="bg-gradient-to-r from-[#FFD84D] to-[#FFBE0B] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
+                                    ИГРАЈ
+                                </button>
+    
+                            </div>
+                        </div>
+                    </div>
+    
+                    <!-- GAME 4 -->
+                    <div class="flex flex-col lg:flex-row-reverse items-center gap-6">
+    
+                        <div
+                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#FF7DA0] to-[#F0446D] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
+    
+                            <div class="flex gap-2">
+                                <div class="w-4 h-10 rounded-full bg-white/80"></div>
+                                <div class="w-4 h-16 rounded-full bg-white/60"></div>
+                                <div class="w-4 h-8 rounded-full bg-white/80"></div>
+                            </div>
+                        </div>
+    
+                        <div onclick="openUnityGame('Буквобег')"
+                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#FFD9E3] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
+    
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    
+                                <div>
+                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
+                                        Буквобег
+                                    </h2>
+    
+                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
+                                        Трчај, скокај и фаќај букви низ брзи и смешни авантури.
+                                    </p>
+                                </div>
+    
+                                <button
+                                    class="bg-gradient-to-r from-[#FF6B92] to-[#F0446D] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
+                                    ИГРАЈ
+                                </button>
+    
+                            </div>
+                        </div>
+                    </div>
+    
+                </div>
+    
+            </section>
+    
+            <!-- FOOTER -->
+            <footer
+                class="bg-gradient-to-r from-[#7ED957] to-[#57C84D] px-6 py-8 text-center border-t-4 border-white">
+    
+                <p class="text-white text-2xl md:text-3xl font-black">
+                    Забава + учење = совршена игра
+                </p>
+    
+                <p class="mt-2 text-white/90 text-lg font-semibold">
+                    За деца од 3 до 8 години
+                </p>
+            </footer>
+    
+        </div>
+    </main>
+
+    <!-- GAME -->
+    <main id="screen-unity" class="screen h-full w-full flex-col items-center justify-center p-2 md:p-6 bg-bukvozderBlue/95 backdrop-blur-xl text-white relative">
+        <h2 id="unity-game-title" class="text-5xl md:text-7xl font-black mb-8 text-veselaZolta floating" style="text-shadow: 4px 4px 0 #D4AC0D;">Име на игра</h2>
+        
+        <div id="unity-container" class="unity-container shadow-[0_20px_0_#00335A]">
+            <div id="unity-loading-screen" class="absolute inset-0 bg-nebesnoSina flex flex-col items-center justify-center z-10">
+                <div class="text-9xl mb-6 animate-bounce drop-shadow-2xl">🌞</div>
+                <h3 class="text-4xl font-black text-white mb-8" style="text-shadow: 3px 3px 0 #1E88E5;">Се вчитува...</h3>
+                <div class="w-2/3 h-10 bg-white rounded-full border-4 border-[#E0E0E0] overflow-hidden shadow-inner p-1">
+                    <div id="loading-bar-fill" class="h-full bg-[#4CAF50] rounded-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+            <div id="unity-game-mockup" class="w-full h-full bg-slate-800 flex items-center justify-center hidden">
+                <p class="text-gray-400 font-mono text-center px-4 text-xl">[ Unity WebGL Canvas ќе се рендерира тука ]</p>
+            </div>
+        </div>
+        
+        <button onclick="toggleFullscreen()" class="mt-10 bg-[#4CAF50] text-white font-black text-2xl py-4 px-10 rounded-3xl btn-3d border-4 border-[#2E7D32] shadow-[0_8px_0_#2E7D32]">
+            📺 ЦЕЛ ЕКРАН
+        </button>
+    </main>
+
+    <script>
+        const mkAlphabet = ['А','Б','В','Г','Д','Ѓ','Е','Ж','З','Ѕ','И','Ј','К','Л','Љ','М','Н','Њ','О','П','Р','С','Т','Ќ','У','Ф','Х','Ц','Ч','Џ','Ш'];
+        const predefinedNamesList = ['Ана', 'Марко', 'Јана', 'Давид', 'Ева', 'Лука', 'Миа', 'Лео', 'Тео', 'Ива', 'Петар', 'Матеј', 'Сара'];
+        
+        const kbColors = [
+            {bg: '#ffadad', dark: '#d98b8b'},
+            {bg: '#ffd6a5', dark: '#d9b283'},
+            {bg: '#fdffb6', dark: '#d6d991'},
+            {bg: '#caffbf', dark: '#a3d996'},
+            {bg: '#9bf6ff', dark: '#7ac9d4'},
+            {bg: '#a0c4ff', dark: '#7d9dd4'},
+            {bg: '#bdb2ff', dark: '#988dd4'},
+            {bg: '#ffc6ff', dark: '#d99cd9'}
+        ];
+        
+        let currentName = "";
+        
+        window.onload = () => {
+            const kb = document.getElementById('keyboard');
+            mkAlphabet.forEach((letter, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = letter;
+                let c = kbColors[i % kbColors.length];
+                btn.style.backgroundColor = c.bg;
+                btn.style.borderColor = c.dark;
+                btn.style.boxShadow = `0 4px 0 ${c.dark}`;
+                
+                btn.className = "click-pop border-2 rounded-xl text-xl md:text-3xl font-black text-temna p-3";
+                btn.onclick = () => addLetter(letter);
+                kb.appendChild(btn);
+            });
+
+            const shuffledNames = predefinedNamesList.sort(() => 0.5 - Math.random()).slice(0, 5);
+            const namesContainer = document.getElementById('random-names-container');
+            shuffledNames.forEach((name, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = name;
+                let c = kbColors[(i+3) % kbColors.length];
+                btn.style.backgroundColor = c.bg;
+                btn.style.borderColor = c.dark;
+                btn.style.boxShadow = `0 4px 0 ${c.dark}`;
+                btn.className = "click-pop text-temna font-black py-2 px-5 rounded-full border-2 text-lg md:text-xl";
+                btn.onclick = () => setPredefinedName(name);
+                namesContainer.appendChild(btn);
+            });
+
+            const splashScreen = document.getElementById('screen-splash');
+            const splashBar = document.getElementById('splash-bar');
+            
+            setTimeout(() => { splashBar.style.width = '100%'; }, 100);
+            
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    splashScreen.classList.remove('active');
+                    document.getElementById('screen-welcome').classList.add('active');
+                }, 500);
+            }, 1800);
+        };
+
+
+
+        function addLetter(char) {
+            if (currentName.length < 12) {
+                currentName += char;
+                updateNameDisplay();
+            }
+        }
+
+        function deleteLetter() {
+            currentName = currentName.slice(0, -1);
+            updateNameDisplay();
+        }
+
+        function setPredefinedName(name) {
+            currentName = name;
+            updateNameDisplay();
+        }
+
+        function updateNameDisplay() {
+            const display = document.getElementById('name-display');
+            display.innerText = currentName.length > 0 ? currentName : "_";
+            if(currentName.length > 0) {
+                display.classList.remove('animate-pulse');
+            } else {
+                display.classList.add('animate-pulse');
+            }
+        }
+
+function finishSetup() {
+    if (currentName.trim() === "") {
+        currentName = "Сонце";
+    }
+
+    document.getElementById('header-avatar').innerText = "Здраво";
+    document.getElementById('header-name').innerText = currentName;
+
+    const welcome = document.getElementById('screen-welcome');
+    const home = document.getElementById('screen-home');
+
+    // completely hide welcome screen
+    welcome.classList.remove('active');
+    welcome.style.display = 'none';
+
+    // show home screen
+    home.classList.add('active');
+
+    document.getElementById('global-header').classList.remove('hidden');
+}
+
+        let audioEnabled = true;
+        let loadingInterval;
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audio-btn').innerText = audioEnabled ? "🔊" : "🔈";
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'fade-out'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function goToHome() {
+            clearInterval(loadingInterval);
+            switchScreen('screen-home');
+        }
+
+        function openUnityGame(gameTitle) {
+            document.getElementById('unity-game-title').innerText = gameTitle;
+            const loadingScreen = document.getElementById('unity-loading-screen');
+            const mockup = document.getElementById('unity-game-mockup');
+            const fill = document.getElementById('loading-bar-fill');
+            
+            loadingScreen.classList.remove('hidden');
+            mockup.classList.add('hidden');
+            fill.style.width = '0%';
+            
+            switchScreen('screen-unity');
+
+            let progress = 0;
+            loadingInterval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(loadingInterval);
+                    setTimeout(() => {
+                        loadingScreen.classList.add('hidden');
+                        mockup.classList.remove('hidden');
+                    }, 500);
+                }
+                fill.style.width = progress + '%';
+            }, 300);
+        }
+
+        function toggleFullscreen() {
+            const container = document.getElementById('unity-container');
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) container.requestFullscreen();
+                else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
