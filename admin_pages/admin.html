@@ -574,10 +574,26 @@
       function renderBadWords() {
         const c = document.getElementById("badwords-container");
         c.innerHTML = "";
-        badWords.forEach(
-          (w, i) =>
-            (c.innerHTML += `<div class="bg-red-50 border-2 border-red-200 text-red-700 py-1 px-3 rounded-md font-bold flex items-center gap-2 text-sm"><span>${w}</span><button onclick="playClickSound(); badWords.splice(${i},1); renderBadWords();" class="text-red-500 font-black hover:text-red-800">✖</button></div>`),
-        );
+        badWords.forEach((w) => {
+          const row = document.createElement("div");
+          row.className = "bg-red-50 border-2 border-red-200 text-red-700 py-1 px-3 rounded-md font-bold flex items-center gap-2 text-sm";
+
+          const label = document.createElement("span");
+          label.textContent = w;
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "text-red-500 font-black hover:text-red-800";
+          button.textContent = "✖";
+          button.addEventListener("click", () => {
+            playClickSound();
+            deleteBadWord(w);
+          });
+
+          row.appendChild(label);
+          row.appendChild(button);
+          c.appendChild(row);
+        });
         saveData();
       }
 
