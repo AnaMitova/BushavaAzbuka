@@ -64,7 +64,7 @@
         ::-webkit-scrollbar { display: none; }
 
         .unity-container {
-            position: relative; width: 100%; max-width: 1024px; aspect-ratio: 16/9;
+            position: relative; width: 100%; max-width: 720px; aspect-ratio: 9/16;
             background-color: #000; border-radius: 1.5rem; overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             border: 4px solid #D0D0D0;
@@ -744,6 +744,9 @@ function finishSetup() {
                         }
                         
                         // Create new game loader
+                        if (typeof GameLoader === 'undefined') {
+                            throw new Error('GameLoader module не е вчитан. Ве молам освежете ја страницата и пробајте повторно.');
+                        }
                         currentGameLoader = new GameLoader();
                         
                         // Load the game

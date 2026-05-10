@@ -60,10 +60,9 @@ class GameLoader {
       const canvas = document.createElement('canvas');
       canvas.id = 'unity-canvas';
       
-      // Use fixed game resolution (960x600 for 16:9 aspect ratio)
-      // This matches the original Unity game build
-      canvas.width = 960;
-      canvas.height = 600;
+      // Use taller game resolution for better visibility in portrait-style game layouts
+      canvas.width = 720;
+      canvas.height = 1280;
       canvas.style.width = '100%';
       canvas.style.height = '100%';
       canvas.style.display = 'block';
@@ -102,47 +101,68 @@ class GameLoader {
         console.log('Found buildUrl:', buildUrl);
       }
       
+      const resolveMaybeBuildUrl = (value) => {
+        if (!value) return null;
+        const trimmed = value.trim();
+        const directMatch = trimmed.match(/^['"](.*?)['"]$/);
+        if (directMatch) {
+          return directMatch[1];
+        }
+        const buildUrlMatch = trimmed.match(/^buildUrl\s*\+\s*['"](.*?)['"]$/);
+        if (buildUrlMatch) {
+          return buildUrl.replace(/\/$/, '') + '/' + buildUrlMatch[1].replace(/^\//, '');
+        }
+        return trimmed;
+      };
+
+      const extractValue = (pattern) => {
+        const match = htmlText.match(pattern);
+        if (!match) return null;
+        return match[1] || match[2] || null;
+      };
+
       // Try to extract loaderUrl
-      const loaderUrlMatch = htmlText.match(/var\s+loaderUrl\s*=\s*['"](.*?)['"]/);
+      const loaderUrlMatch = htmlText.match(/var\s+loaderUrl\s*=\s*(?:['"](.*?)['"]|buildUrl\s*\+\s*['"](.*?)['"])/);
       if (loaderUrlMatch) {
-        loaderScript = loaderUrlMatch[1];
+        loaderScript = loaderUrlMatch[1] || (buildUrl.replace(/\/$/, '') + '/' + (loaderUrlMatch[2] || '').replace(/^\//, ''));
         console.log('Found loaderUrl:', loaderScript);
       }
       
-      // Try to extract paths from config object
-      const dataMatch = htmlText.match(/dataUrl\s*:\s*['"](.*?)['"]/);
+      // Try to extract paths from config object with buildUrl support
+      const dataMatch = htmlText.match(/dataUrl\s*:\s*(?:['"](.*?)['"]|buildUrl\s*\+\s*['"](.*?)['"])/);
       if (dataMatch) {
-        dataUrl = dataMatch[1];
+        dataUrl = resolveMaybeBuildUrl(dataMatch[1] ? `'${dataMatch[1]}'` : `buildUrl + '${dataMatch[2]}'`);
         console.log('Found dataUrl:', dataUrl);
       }
       
-      const frameworkMatch = htmlText.match(/frameworkUrl\s*:\s*['"](.*?)['"]/);
+      const frameworkMatch = htmlText.match(/frameworkUrl\s*:\s*(?:['"](.*?)['"]|buildUrl\s*\+\s*['"](.*?)['"])/);
       if (frameworkMatch) {
-        frameworkUrl = frameworkMatch[1];
+        frameworkUrl = resolveMaybeBuildUrl(frameworkMatch[1] ? `'${frameworkMatch[1]}'` : `buildUrl + '${frameworkMatch[2]}'`);
         console.log('Found frameworkUrl:', frameworkUrl);
       }
       
-      const codeMatch = htmlText.match(/codeUrl\s*:\s*['"](.*?)['"]/);
+      const codeMatch = htmlText.match(/codeUrl\s*:\s*(?:['"](.*?)['"]|buildUrl\s*\+\s*['"](.*?)['"])/);
       if (codeMatch) {
-        codeUrl = codeMatch[1];
+        codeUrl = resolveMaybeBuildUrl(codeMatch[1] ? `'${codeMatch[1]}'` : `buildUrl + '${codeMatch[2]}'`);
         console.log('Found codeUrl:', codeUrl);
       }
 
       // Validate that we found the required paths
       if (!loaderScript || !dataUrl || !frameworkUrl || !codeUrl) {
         throw new Error('Could not extract game configuration from HTML. The game files may be incomplete or corrupted.');
+      }
 
       const baseUrl = gameUrl.substring(0, gameUrl.lastIndexOf('/'));
       
       // Resolve paths to absolute URLs
       const loaderScriptUrl = loaderScript.startsWith('http') 
         ? loaderScript 
-        : baseUrl + '/' + loaderScript;
+        : baseUrl + '/' + loaderScript.replace(/^\//, '');
 
       const config = {
-        dataUrl: dataUrl.startsWith('http') ? dataUrl : baseUrl + '/' + dataUrl,
-        frameworkUrl: frameworkUrl.startsWith('http') ? frameworkUrl : baseUrl + '/' + frameworkUrl,
-        codeUrl: codeUrl.startsWith('http') ? codeUrl : baseUrl + '/' + codeUrl,
+        dataUrl: dataUrl.startsWith('http') ? dataUrl : baseUrl + '/' + dataUrl.replace(/^\//, ''),
+        frameworkUrl: frameworkUrl.startsWith('http') ? frameworkUrl : baseUrl + '/' + frameworkUrl.replace(/^\//, ''),
+        codeUrl: codeUrl.startsWith('http') ? codeUrl : baseUrl + '/' + codeUrl.replace(/^\//, ''),
         streamingAssetsUrl: baseUrl + '/StreamingAssets',
         companyName: 'Bushava',
         productName: 'Game',
