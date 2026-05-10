@@ -163,6 +163,7 @@
                     ⌫
                 </button>
             </div>
+            <p id="badword-error" class="hidden text-center text-sm font-bold text-toplaCrvena mb-4">Bad words not allowed</p>
     
             <div id="keyboard" class="grid grid-cols-7 gap-1.5 mb-4 w-full max-w-lg scale-90 origin-top"></div>
     
@@ -362,6 +363,8 @@
         let audioEnabled = true;
         let audioContext = null;
         let loadingInterval = null;
+        let badWords = [];
+        let badWordsLoaded = false;
         
         // Initialize audio context once
         function getAudioContext() {
@@ -447,6 +450,22 @@
         }
 
         window.onload = () => {
+            fetch('/api/badwords')
+                .then((response) => response.json())
+                .then((data) => {
+                    if (Array.isArray(data.words)) {
+                        badWords = data.words.map((w) => w.toLowerCase());
+                    } else {
+                        badWords = [];
+                    }
+                })
+                .catch(() => {
+                    badWords = [];
+                })
+                .finally(() => {
+                    badWordsLoaded = true;
+                });
+
             const splashScreen = document.getElementById('screen-splash');
             const splashBar = document.getElementById('splash-bar');
             
@@ -499,11 +518,34 @@
             }
         }
 
+function showBadWordError(message) {
+    const errorEl = document.getElementById('badword-error');
+    if (!errorEl) return;
+    errorEl.innerText = message;
+    errorEl.classList.remove('hidden');
+    clearTimeout(window.badwordErrorTimeout);
+    window.badwordErrorTimeout = setTimeout(() => {
+        errorEl.classList.add('hidden');
+    }, 3000);
+}
+
 function finishSetup() {
-    if (currentName.trim() === "") {
-        currentName = "Сонце";
+    const trimmedName = currentName.trim();
+    const finalName = trimmedName === "" ? "Сонце" : trimmedName;
+
+    const lowerName = finalName.toLowerCase();
+    const matchedBadWord = badWordsLoaded && badWords.length > 0
+        ? badWords.find((word) => lowerName.includes(word))
+        : null;
+
+    if (matchedBadWord) {
+        currentName = "";
+        updateNameDisplay();
+        showBadWordError("Bad words not allowed");
+        return;
     }
 
+    currentName = finalName;
     document.getElementById('header-avatar').innerText = "Здраво";
     document.getElementById('header-name').innerText = currentName;
 

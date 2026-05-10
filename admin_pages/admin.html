@@ -142,6 +142,7 @@
               />
               <button
                 type="submit"
+                onclick="playClickSound()"
                 class="bg-nebesnoSina text-white font-black px-4 rounded-xl border-4 border-[#4A8BBD] btn-3d"
               >
                 +
@@ -159,8 +160,11 @@
             >
               🤬 Лоши Зборови
             </h2>
-            <p class="text-sm font-bold text-gray-500 mb-4 leading-tight">
+            <p class="text-sm font-bold text-gray-500 mb-2 leading-tight">
               Зборови кои се забранети за внесување како име.
+            </p>
+            <p class="text-xs text-gray-400 mb-4">
+              Прикажани се сите зборови од базата.
             </p>
             <form onsubmit="addBadWord(event)" class="flex gap-2 mb-4">
               <input
@@ -171,6 +175,7 @@
               />
               <button
                 type="submit"
+                onclick="playClickSound()"
                 class="bg-toplaCrvena text-white font-black px-4 rounded-xl border-4 border-[#C2185B] btn-3d"
               >
                 +
@@ -382,14 +387,29 @@
           "Марко",
           "Јана",
         ];
-        badWords = JSON.parse(localStorage.getItem("b_badwords")) || [
-          "глуп",
-          "будала",
-          "идиот",
-        ];
 
-        renderNames();
-        renderBadWords();
+        fetch("/api/badwords")
+          .then((response) => response.json())
+          .then((data) => {
+            if (Array.isArray(data.words)) {
+              badWords = data.words;
+            } else {
+              badWords = [];
+            }
+            renderGames();
+            renderNames();
+            renderBadWords();
+          })
+          .catch(() => {
+            badWords = JSON.parse(localStorage.getItem("b_badwords")) || [
+              "глуп",
+              "будала",
+              "идиот",
+            ];
+            renderGames();
+            renderNames();
+            renderBadWords();
+          });
       }
 
       function saveData() {
@@ -560,18 +580,61 @@
         );
         saveData();
       }
+
+      function deleteBadWord(word) {
+        fetch(`/api/badwords/${encodeURIComponent(word)}`, {
+          method: "DELETE",
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (Array.isArray(data.words)) {
+              badWords = data.words;
+              renderBadWords();
+            }
+          })
+          .catch(() => {
+            badWords = badWords.filter((w) => w !== word);
+            renderBadWords();
+          });
+      }
+
       function addBadWord(e) {
         e.preventDefault();
         playClickSound();
-        const v = document
-          .getElementById("new-badword")
-          .value.trim()
-          .toLowerCase();
-        if (v && !badWords.includes(v)) {
-          badWords.push(v);
-          renderBadWords();
+        const input = document.getElementById("new-badword");
+        const v = input.value.trim().toLowerCase();
+        if (!v) {
+          return;
         }
-        document.getElementById("new-badword").value = "";
+
+        if (badWords.includes(v)) {
+          input.value = "";
+          return;
+        }
+
+        fetch("/api/badwords", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ word: v }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (Array.isArray(data.words)) {
+              badWords = data.words;
+              renderBadWords();
+            }
+          })
+          .catch(() => {
+            if (!badWords.includes(v)) {
+              badWords.push(v);
+              renderBadWords();
+            }
+          })
+          .finally(() => {
+            input.value = "";
+          });
       }
 
       // Debug function to check database
@@ -592,6 +655,7 @@
           })
           .catch(err => alert('Грешка: ' + err.message));
       }
+      window.addEventListener("DOMContentLoaded", loadData);
     </script>
   </body>
 </html>
