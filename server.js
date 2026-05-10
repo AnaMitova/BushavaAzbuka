@@ -18,7 +18,27 @@ app.use(
   }),
 );
 
-// Serve your static files
+// Serve your static files with proper MIME types for WebGL builds
+app.use((req, res, next) => {
+  if (req.path.endsWith('.wasm')) {
+    res.type('application/wasm');
+  } else if (req.path.endsWith('.data.br')) {
+    res.setHeader('Content-Encoding', 'br');
+    res.type('application/octet-stream');
+  } else if (req.path.endsWith('.data')) {
+    res.type('application/octet-stream');
+  } else if (req.path.endsWith('.js.br')) {
+    res.setHeader('Content-Encoding', 'br');
+    res.type('text/javascript');
+  } else if (req.path.endsWith('.wasm.br')) {
+    res.setHeader('Content-Encoding', 'br');
+    res.type('application/wasm');
+  } else if (req.path.endsWith('.unityweb')) {
+    res.type('application/octet-stream');
+  }
+  next();
+});
+
 app.use(express.static(__dirname));
 
 // --- ROUTES ---

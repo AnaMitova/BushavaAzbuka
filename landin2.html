@@ -31,6 +31,8 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Baloo+2:wght@500;700;800&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
     
+    <script src="src/gameLoader.js"></script>
+    
     <style>
         body { 
             font-family: 'Fredoka', sans-serif;
@@ -337,7 +339,7 @@
 
     <script>
         const mkAlphabet = ['А','Б','В','Г','Д','Ѓ','Е','Ж','З','Ѕ','И','Ј','К','Л','Љ','М','Н','Њ','О','П','Р','С','Т','Ќ','У','Ф','Х','Ц','Ч','Џ','Ш'];
-        const predefinedNamesList = ['Ана', 'Марко', 'Јана', 'Давид', 'Ева', 'Лука', 'Миа', 'Лео', 'Тео', 'Ива', 'Петар', 'Матеј', 'Сара'];
+        const predefinedNamesList = ['Сонце', 'Месечина', 'Звезда', 'Облаче', 'Дождовче', 'Ветре', 'Снег', 'Маче', 'Пингвин', 'Мачка', 'Јаболче', 'Зајче', 'Лав', 'Слонче', 'Жирафче', 'Паланинка', 'Јаготка', 'Сладолед'];
         
         const kbColors = [
             {bg: '#ffadad', dark: '#d98b8b'},
@@ -543,7 +545,14 @@ function showBadWordError(message) {
 
 function finishSetup() {
     const trimmedName = currentName.trim();
-    const finalName = trimmedName === "" ? "Сонце" : trimmedName;
+    
+    // If no name entered, pick a random one from the predefined list
+    let finalName;
+    if (trimmedName === "") {
+        finalName = predefinedNamesList[Math.floor(Math.random() * predefinedNamesList.length)];
+    } else {
+        finalName = trimmedName;
+    }
 
     const lowerName = finalName.toLowerCase();
     const matchedBadWord = badWordsLoaded && badWords.length > 0
@@ -615,14 +624,6 @@ function finishSetup() {
                 const colors = gameColorSchemes[index % gameColorSchemes.length];
                 const isReverse = index % 2 === 1;
                 
-                const adminControls = isAdmin ? `
-                    <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition duration-300">
-                        <button onclick="deleteGameFromMain(${game.id}, event)" class="bg-red-500 hover:bg-red-600 text-white font-black px-4 py-2 rounded-lg border-2 border-red-700 shadow-lg">
-                            🗑️ Бриши
-                        </button>
-                    </div>
-                ` : '';
-                
                 const gameHTML = `
                     <div class="flex flex-col ${isReverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-6">
                         <div class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br ${colors.gradient} border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center text-6xl">
@@ -630,10 +631,8 @@ function finishSetup() {
                         </div>
                         
                         <div class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl ${colors.borderColor} border-4 cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300 relative"
-                            onclick="!event.target.closest('button') && openUnityGame('${game.name.replace(/'/g, "\\'")}')"
+                            onclick="!event.target.closest('button') && openUnityGame(${game.id})"
                         >
-                            ${adminControls}
-                            
                             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                                 <div>
                                     <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
@@ -680,6 +679,13 @@ function finishSetup() {
 
         function goToHome() {
             clearInterval(loadingInterval);
+            
+            // Clean up game loader
+            if (currentGameLoader) {
+                currentGameLoader.unloadGame();
+                currentGameLoader = null;
+            }
+            
             // Reset to name selection screen
             currentName = "";
             updateNameDisplay();
@@ -694,31 +700,95 @@ function finishSetup() {
             switchScreen('screen-welcome');
         }
 
-        function openUnityGame(gameTitle) {
-            document.getElementById('unity-game-title').innerText = gameTitle;
-            const loadingScreen = document.getElementById('unity-loading-screen');
-            const mockup = document.getElementById('unity-game-mockup');
-            const fill = document.getElementById('loading-bar-fill');
-            
-            loadingScreen.classList.remove('hidden');
-            mockup.classList.add('hidden');
-            fill.style.width = '0%';
-            
-            switchScreen('screen-unity');
+        let currentGameLoader = null;
 
-            let progress = 0;
-            loadingInterval = setInterval(() => {
-                progress += Math.random() * 30;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(loadingInterval);
-                    setTimeout(() => {
-                        loadingScreen.classList.add('hidden');
-                        mockup.classList.remove('hidden');
-                    }, 500);
+        function openUnityGame(gameId) {
+            try {
+                // Validate game ID
+                if (!gameId || typeof gameId !== 'number') {
+                    throw new Error('Invalid game ID');
                 }
-                fill.style.width = progress + '%';
-            }, 300);
+
+                // Fetch the specific game to get its URL
+                fetch(`/api/games`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return res.json();
+                    })
+                    .then(games => {
+                        if (!Array.isArray(games)) throw new Error('Invalid game list');
+                        
+                        const game = games.find(g => g.id === gameId);
+                        if (!game) {
+                            throw new Error('Game not found in database');
+                        }
+                        
+                        if (!game.url) {
+                            throw new Error('Game URL is not configured');
+                        }
+                        
+                        document.getElementById('unity-game-title').innerText = game.name || 'Game';
+                        const loadingScreen = document.getElementById('unity-loading-screen');
+                        const mockup = document.getElementById('unity-game-mockup');
+                        const fill = document.getElementById('loading-bar-fill');
+                        
+                        loadingScreen.classList.remove('hidden');
+                        mockup.classList.add('hidden');
+                        fill.style.width = '0%';
+                        
+                        switchScreen('screen-unity');
+                        
+                        // Clean up previous game loader if exists
+                        if (currentGameLoader) {
+                            currentGameLoader.unloadGame();
+                        }
+                        
+                        // Create new game loader
+                        currentGameLoader = new GameLoader();
+                        
+                        // Load the game
+                        currentGameLoader.loadGame(
+                            game.url,
+                            'unity-container',
+                            (progress) => {
+                                // Update loading bar with smooth transition
+                                fill.style.width = (progress * 100) + '%';
+                            },
+                            () => {
+                                // Game loaded successfully
+                                console.log('Game loaded:', game.name);
+                                setTimeout(() => {
+                                    loadingScreen.classList.add('hidden');
+                                }, 300);
+                            },
+                            (error) => {
+                                // Error loading game
+                                console.error('Game loading error:', error);
+                                setTimeout(() => {
+                                    loadingScreen.classList.add('hidden');
+                                }, 300);
+                            }
+                        );
+                    })
+                    .catch(error => {
+                        console.error('Error opening game:', error);
+                        const container = document.getElementById('unity-container');
+                        if (container) {
+                            container.innerHTML = `
+                                <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: #1a1a1a; color: #fff; flex-direction: column; padding: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
+                                    <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                                    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Грешка при учитување</div>
+                                    <div style="font-size: 0.95rem; color: #bbb;">${error.message || 'Неможе да се отвори играта. Обидете се повторно.'}</div>
+                                </div>
+                            `;
+                        }
+                        const loadingScreen = document.getElementById('unity-loading-screen');
+                        if (loadingScreen) loadingScreen.classList.add('hidden');
+                    });
+            } catch (error) {
+                console.error('Unexpected error:', error);
+                alert('Неочекувана грешка: ' + (error.message || 'Обидете се повторно'));
+            }
         }
 
         function toggleFullscreen() {
