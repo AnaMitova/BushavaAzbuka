@@ -1,48 +1,442 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="mk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ Панел</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Baloo+2:wght@500;700;800&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Fredoka', sans-serif; }
-    </style>
-</head>
-<body class="bg-gray-100 min-h-screen font-sans">
-    <nav class="bg-white shadow-md border-b-4 border-green-500 p-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-black text-green-700">Админ Контрола</h1>
-            <a href="/logout" class="bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition-colors shadow-[0_3px_0_#b91c1c]">
-                Одјави се
-            </a>
-        </div>
-    </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Админ Панел - Бушава Игротека</title>
 
-    <main class="max-w-7xl mx-auto p-6 mt-6">
-        <div class="bg-white rounded-2xl shadow-lg p-6 border-2 border-gray-200">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Добредојдовте во Админ Панелот!</h2>
-            <p class="text-gray-600 mb-6">Ова е безбедна зона само за администратори.</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Example Stat Card -->
-                <div class="p-6 bg-blue-50 rounded-xl border border-blue-200">
-                    <h3 class="text-blue-800 font-bold mb-2">Статистика 1</h3>
-                    <p class="text-3xl font-black text-blue-600">42</p>
-                </div>
-                
-                <div class="p-6 bg-green-50 rounded-xl border border-green-200">
-                    <h3 class="text-green-800 font-bold mb-2">Статистика 2</h3>
-                    <p class="text-3xl font-black text-green-600">128</p>
-                </div>
-                
-                <div class="p-6 bg-purple-50 rounded-xl border border-purple-200">
-                    <h3 class="text-purple-800 font-bold mb-2">Статистика 3</h3>
-                    <p class="text-3xl font-black text-purple-600">7</p>
-                </div>
-            </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              bushavaOrange: "#FF6B35",
+              bukvozderBlue: "#004E89",
+              veselaZolta: "#FFD23F",
+              toplaCrvena: "#EE4266",
+              svetloZelena: "#4CAF50",
+              nebesnoSina: "#64B5F6",
+              temna: "#333333",
+            },
+            fontFamily: {
+              sans: ["Nunito", "sans-serif"],
+              kids: ['"Fredoka"', "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Fredoka:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Fredoka", sans-serif;
+        background-color: #a8edea;
+        background-image: url("img/bg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+
+      .btn-3d {
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .btn-3d:active {
+        transform: translateY(4px) scale(0.98);
+        box-shadow: none !important;
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 4px solid #d0d0d0;
+        box-shadow: 8px 8px 0 #c0c0c0;
+      }
+
+      .screen {
+        display: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+      .screen.active {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-temna">
+    <div
+      id="dashboard-screen"
+      class="flex-col p-4 md:p-8 max-w-7xl mx-auto flex"
+    >
+      <header
+        class="flex flex-col md:flex-row justify-between items-center mb-8 glass-panel rounded-3xl p-6 w-full"
+      >
+        <div class="flex items-center gap-4 mb-4 md:mb-0">
+          <div class="text-5xl">⚙️</div>
+          <div>
+            <h1 class="text-3xl md:text-4xl font-black text-bukvozderBlue">
+              Админ Контрола
+            </h1>
+            <p class="text-gray-500 font-bold">Управување со Бушава Игротека</p>
+          </div>
         </div>
-    </main>
-</body>
+        <button
+          onclick="window.location.href = 'landin2.html'"
+          class="bg-[#FFD23F] text-temna font-black text-xl py-3 px-6 rounded-2xl border-4 border-[#CCA732] shadow-[0_6px_0_#CCA732] btn-3d"
+        >
+          🏠 Кон Главната Страна
+        </button>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+        <section class="lg:col-span-2 glass-panel rounded-3xl p-6 md:p-8">
+          <div
+            class="flex justify-between items-center mb-6 border-b-4 border-gray-100 pb-4"
+          >
+            <h2 class="text-3xl font-black text-temna">🎮 Игри</h2>
+            <button
+              onclick="openModal()"
+              class="bg-[#4CAF50] text-white font-black text-lg py-2 px-5 rounded-xl border-4 border-[#2E7D32] shadow-[0_4px_0_#2E7D32] btn-3d"
+            >
+              + Нова Игра
+            </button>
+          </div>
+          <div
+            id="games-container"
+            class="grid grid-cols-1 md:grid-cols-2 gap-6"
+          ></div>
+        </section>
+
+        <div class="flex flex-col gap-8">
+          <section class="glass-panel rounded-3xl p-6">
+            <h2
+              class="text-2xl font-black text-temna mb-4 border-b-4 border-gray-100 pb-2"
+            >
+              🏷️ Брзи Имиња
+            </h2>
+            <form onsubmit="addName(event)" class="flex gap-2 mb-4">
+              <input
+                type="text"
+                id="new-name"
+                placeholder="пр. Јана"
+                class="flex-1 rounded-xl border-4 border-gray-200 p-2 font-bold focus:outline-none focus:border-nebesnoSina"
+              />
+              <button
+                type="submit"
+                class="bg-nebesnoSina text-white font-black px-4 rounded-xl border-4 border-[#4A8BBD] btn-3d"
+              >
+                +
+              </button>
+            </form>
+            <div
+              id="names-container"
+              class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2"
+            ></div>
+          </section>
+
+          <section class="glass-panel rounded-3xl p-6 border-toplaCrvena">
+            <h2
+              class="text-2xl font-black text-toplaCrvena mb-4 border-b-4 border-gray-100 pb-2"
+            >
+              🤬 Лоши Зборови
+            </h2>
+            <p class="text-sm font-bold text-gray-500 mb-4 leading-tight">
+              Зборови кои се забранети за внесување како име.
+            </p>
+            <form onsubmit="addBadWord(event)" class="flex gap-2 mb-4">
+              <input
+                type="text"
+                id="new-badword"
+                placeholder="Внеси збор..."
+                class="flex-1 rounded-xl border-4 border-gray-200 p-2 font-bold focus:outline-none focus:border-toplaCrvena"
+              />
+              <button
+                type="submit"
+                class="bg-toplaCrvena text-white font-black px-4 rounded-xl border-4 border-[#C2185B] btn-3d"
+              >
+                +
+              </button>
+            </form>
+            <div
+              id="badwords-container"
+              class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2"
+            ></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="game-modal"
+      class="fixed inset-0 bg-temna/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white w-full max-w-lg rounded-[2rem] border-4 border-[#D0D0D0] shadow-2xl p-6 md:p-8 relative"
+      >
+        <button
+          onclick="closeModal()"
+          class="absolute top-4 right-4 text-gray-400 hover:text-toplaCrvena text-3xl font-black btn-3d"
+        >
+          ✖
+        </button>
+        <h3
+          id="modal-title"
+          class="text-3xl font-black mb-6 text-bukvozderBlue border-b-4 border-gray-100 pb-4"
+        >
+          Додај Игра
+        </h3>
+
+        <form id="game-form" onsubmit="saveGame(event)" class="space-y-4">
+          <input type="hidden" id="g-id" />
+
+          <div>
+            <label class="block font-bold text-gray-600 mb-1"
+              >Име на играта</label
+            >
+            <input
+              type="text"
+              id="g-title"
+              required
+              class="w-full rounded-xl border-4 border-gray-200 p-3 font-bold text-lg"
+            />
+          </div>
+
+          <div class="flex gap-4">
+            <div class="w-1/3">
+              <label class="block font-bold text-gray-600 mb-1">Емоџи</label>
+              <input
+                type="text"
+                id="g-icon"
+                required
+                maxlength="2"
+                placeholder="🚀"
+                class="w-full text-center rounded-xl border-4 border-gray-200 p-3 text-2xl"
+              />
+            </div>
+            <div class="w-2/3">
+              <label class="block font-bold text-gray-600 mb-1"
+                >Боја на картичка</label
+              >
+              <select
+                id="g-color"
+                class="w-full rounded-xl border-4 border-gray-200 p-3 font-bold text-lg cursor-pointer"
+              >
+                <option value="#FF9B71">Портокалова</option>
+                <option value="#64B5F6">Сина</option>
+                <option value="#FFD23F">Жолта</option>
+                <option value="#EE4266">Црвена</option>
+                <option value="#4CAF50">Зелена</option>
+                <option value="#BA68C8">Виолетова</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-200">
+            <label class="block font-black text-bukvozderBlue mb-1"
+              >Unity патека (Папка)</label
+            >
+            <p class="text-xs text-gray-500 mb-2 font-bold">
+              Пр: ако фајловите се во "games/koli", пиши "games/koli".
+            </p>
+            <input
+              type="text"
+              id="g-url"
+              placeholder="пр. builds/igra1"
+              class="w-full rounded-xl border-4 border-gray-200 p-3 font-mono text-sm"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full mt-2 bg-toplaCrvena text-white font-black text-xl py-4 rounded-2xl border-4 border-[#C2185B] shadow-[0_6px_0_#C2185B] btn-3d"
+          >
+            💾 ЗАЧУВАЈ ИГРА
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // --- 1. ЛОГИН СИСТЕМ ---
+      function checkPin() {
+        const pin = document.getElementById("pin-input").value;
+        if (pin === "1234") {
+          // Брутално гасење на логин екранот (посилно од сите CSS класи)
+          document
+            .getElementById("login-screen")
+            .setAttribute("style", "display: none !important;");
+
+          // Палење на дашбордот
+          const dashScreen = document.getElementById("dashboard-screen");
+          dashScreen.classList.remove("hidden");
+          dashScreen.setAttribute("style", "display: flex !important;");
+
+          loadData();
+        } else {
+          document.getElementById("login-error").classList.remove("hidden");
+          document.getElementById("pin-input").value = "";
+        }
+      }
+
+      // --- 2. ПОДАТОЦИ ---
+      let games = [];
+      let names = [];
+      let badWords = [];
+
+      function loadData() {
+        games = JSON.parse(localStorage.getItem("b_games")) || [
+          {
+            id: 1,
+            title: "Бушаво Слово",
+            icon: "🔤",
+            color: "#FF9B71",
+            url: "igra1",
+          },
+          {
+            id: 2,
+            title: "Збороград",
+            icon: "🧩",
+            color: "#64B5F6",
+            url: "igra2",
+          },
+        ];
+        names = JSON.parse(localStorage.getItem("b_names")) || [
+          "Ана",
+          "Марко",
+          "Јана",
+        ];
+        badWords = JSON.parse(localStorage.getItem("b_badwords")) || [
+          "глуп",
+          "будала",
+          "идиот",
+        ];
+
+        renderGames();
+        renderNames();
+        renderBadWords();
+      }
+
+      function saveData() {
+        localStorage.setItem("b_games", JSON.stringify(games));
+        localStorage.setItem("b_names", JSON.stringify(names));
+        localStorage.setItem("b_badwords", JSON.stringify(badWords));
+      }
+
+      // --- 3. ИГРИ (CRUD) ---
+      function renderGames() {
+        const container = document.getElementById("games-container");
+        container.innerHTML = "";
+        games.forEach((g) => {
+          container.innerHTML += `
+                    <div class="bg-white rounded-3xl border-4 border-gray-200 p-4 shadow-sm flex flex-col">
+                        <div class="rounded-2xl p-4 flex items-center gap-3 text-white mb-4" style="background-color: ${g.color}; border: 4px solid rgba(0,0,0,0.1);">
+                            <div class="text-3xl bg-white w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-black border-2 border-white/50">${g.icon}</div>
+                            <h3 class="text-xl font-black leading-tight" style="text-shadow: 2px 2px 0 rgba(0,0,0,0.2);">${g.title}</h3>
+                        </div>
+                        <p class="text-xs font-mono bg-gray-100 p-2 rounded-lg mb-4 text-gray-500 overflow-hidden truncate">📂 ${g.url || "Нема патека"}</p>
+                        <div class="flex gap-2 mt-auto">
+                            <button onclick="editGame(${g.id})" class="flex-1 bg-gray-100 font-bold py-2 rounded-xl border-2 border-gray-300 btn-3d text-sm">✏️ Уреди</button>
+                            <button onclick="deleteGame(${g.id})" class="flex-1 bg-red-50 text-toplaCrvena font-bold py-2 rounded-xl border-2 border-red-200 btn-3d text-sm">🗑️ Бриши</button>
+                        </div>
+                    </div>
+                `;
+        });
+        saveData();
+      }
+
+      function openModal() {
+        document.getElementById("game-form").reset();
+        document.getElementById("g-id").value = "";
+        document.getElementById("modal-title").innerText = "Додај Игра";
+        document.getElementById("game-modal").classList.remove("hidden");
+      }
+      function closeModal() {
+        document.getElementById("game-modal").classList.add("hidden");
+      }
+
+      function saveGame(e) {
+        e.preventDefault();
+        const id = document.getElementById("g-id").value;
+        const newGame = {
+          id: id ? Number(id) : Date.now(),
+          title: document.getElementById("g-title").value,
+          icon: document.getElementById("g-icon").value,
+          color: document.getElementById("g-color").value,
+          url: document.getElementById("g-url").value,
+        };
+        if (id) {
+          const idx = games.findIndex((g) => g.id == id);
+          games[idx] = newGame;
+        } else games.push(newGame);
+        renderGames();
+        closeModal();
+      }
+
+      function editGame(id) {
+        const g = games.find((x) => x.id === id);
+        document.getElementById("g-id").value = g.id;
+        document.getElementById("g-title").value = g.title;
+        document.getElementById("g-icon").value = g.icon;
+        document.getElementById("g-color").value = g.color;
+        document.getElementById("g-url").value = g.url;
+        document.getElementById("modal-title").innerText = "Уреди Игра";
+        document.getElementById("game-modal").classList.remove("hidden");
+      }
+
+      function deleteGame(id) {
+        if (confirm("Избриши игра?")) {
+          games = games.filter((g) => g.id !== id);
+          renderGames();
+        }
+      }
+
+      // --- 4. БРЗИ ИМИЊА ---
+      function renderNames() {
+        const c = document.getElementById("names-container");
+        c.innerHTML = "";
+        names.forEach(
+          (n, i) =>
+            (c.innerHTML += `<div class="bg-white border-2 border-gray-300 py-1 px-3 rounded-full font-bold flex items-center gap-1 text-sm"><span>${n}</span><button onclick="names.splice(${i},1); renderNames();" class="text-red-400 font-black ml-1 scale-125 hover:text-red-600">×</button></div>`),
+        );
+        saveData();
+      }
+      function addName(e) {
+        e.preventDefault();
+        const v = document.getElementById("new-name").value.trim();
+        if (v && !names.includes(v)) {
+          names.push(v);
+          renderNames();
+        }
+        document.getElementById("new-name").value = "";
+      }
+
+      // --- 5. ЛОШИ ЗБОРОВИ ---
+      function renderBadWords() {
+        const c = document.getElementById("badwords-container");
+        c.innerHTML = "";
+        badWords.forEach(
+          (w, i) =>
+            (c.innerHTML += `<div class="bg-red-50 border-2 border-red-200 text-red-700 py-1 px-3 rounded-md font-bold flex items-center gap-2 text-sm"><span>${w}</span><button onclick="badWords.splice(${i},1); renderBadWords();" class="text-red-500 font-black hover:text-red-800">✖</button></div>`),
+        );
+        saveData();
+      }
+      function addBadWord(e) {
+        e.preventDefault();
+        const v = document
+          .getElementById("new-badword")
+          .value.trim()
+          .toLowerCase();
+        if (v && !badWords.includes(v)) {
+          badWords.push(v);
+          renderBadWords();
+        }
+        document.getElementById("new-badword").value = "";
+      }
+    </script>
+  </body>
 </html>
