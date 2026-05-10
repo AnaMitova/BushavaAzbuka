@@ -1,11 +1,15 @@
 {
   "name": "bushavaazbuka",
   "version": "1.0.0",
-  "description": "",
+  "description": "This project uses SQLite for data storage.",
   "main": "postcss.config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+    "server": "node server.js",
+    "tailwind:watch": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch",
+    "tailwind:build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --minify",
+    "dev": "concurrently \"npm run tailwind:watch\" \"npm run server\"",
+    "build": "npm run tailwind:build",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +17,15 @@
   "type": "commonjs",
   "devDependencies": {
     "autoprefixer": "^10.5.0",
+    "concurrently": "^9.2.1",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.3.0"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "sqlite3": "^6.0.1"
   }
 }
