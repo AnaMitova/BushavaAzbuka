@@ -9,6 +9,7 @@ const db = new sqlite3.Database("./database.sqlite");
 
 // Middleware to understand form data and sessions
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "fallback-secret-development-key",
@@ -25,6 +26,24 @@ app.use(express.static(__dirname));
 // 0. The Landing Page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "landin2.html"));
+});
+
+// 0.5 API: Check if user is authenticated
+app.get("/api/auth/check", (req, res) => {
+  res.json({ loggedin: req.session.loggedin || false });
+});
+
+// 0.6 API: Get all games with null-safe defaults
+app.get("/api/games-debug", (req, res) => {
+  db.all("SELECT * FROM games", [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching games:", err.message);
+      res.status(500).json({ error: "Failed to fetch games", details: err.message });
+    } else {
+      console.log("Raw games from DB:", rows);
+      res.json({ count: rows?.length || 0, games: rows || [] });
+    }
+  });
 });
 
 // 1. The Login Page
@@ -69,6 +88,110 @@ app.get("/admin", (req, res) => {
   } else {
     res.redirect("/login");
   }
+});
+
+// 5. API: Get all games
+app.get("/api/games", (req, res) => {
+  db.all("SELECT id, name, emoji, url FROM games ORDER BY id", [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching games:", err.message);
+      res.status(500).json({ error: "Failed to fetch games" });
+    } else {
+      res.json(rows || []);
+    }
+  });
+});
+
+// 6. API: Create new game
+app.post("/api/games", (req, res) => {
+  const { name, emoji, url } = req.body;
+  
+  if (!name || !emoji || !url) {
+    return res.status(400).json({ error: "Missing required fields: name, emoji, url" });
+  }
+  
+  db.run(
+    "INSERT INTO games (name, emoji, url) VALUES (?, ?, ?)",
+    [name, emoji, url],
+    function(err) {
+      if (err) {
+        console.error("Error creating game:", err.message);
+        res.status(500).json({ error: "Failed to create game" });
+      } else {
+        res.json({ id: this.lastID, name, emoji, url });
+      }
+    }
+  );
+});
+
+// 7. API: Update game
+app.put("/api/games/:id", (req, res) => {
+  const { id } = req.params;
+  const { name, emoji, url } = req.body;
+  
+  if (!name || !emoji || !url) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  
+  db.run(
+    "UPDATE games SET name = ?, emoji = ?, url = ? WHERE id = ?",
+    [name, emoji, url, id],
+    function(err) {
+      if (err) {
+        console.error("Error updating game:", err.message);
+        res.status(500).json({ error: "Failed to update game" });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: "Game not found" });
+      } else {
+        res.json({ id, name, emoji, url });
+      }
+    }
+  );
+});
+
+// 8. API: Delete game
+app.delete("/api/games/:id", (req, res) => {
+  const { id } = req.params;
+  
+  db.run(
+    "DELETE FROM games WHERE id = ?",
+    [id],
+    function(err) {
+      if (err) {
+        console.error("Error deleting game:", err.message);
+        res.status(500).json({ error: "Failed to delete game" });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: "Game not found" });
+      } else {
+        res.json({ success: true, id });
+      }
+    }
+  );
+});
+
+// 9. API: Fix missing game data (admin only)
+app.post("/api/games/fix-missing-data/:id", (req, res) => {
+  const { id } = req.params;
+  const { emoji, url } = req.body;
+  
+  if (!emoji || !url) {
+    return res.status(400).json({ error: "Both emoji and url are required" });
+  }
+  
+  db.run(
+    "UPDATE games SET emoji = ?, url = ? WHERE id = ? AND (emoji IS NULL OR emoji = '' OR url IS NULL OR url = '')",
+    [emoji, url, id],
+    function(err) {
+      if (err) {
+        console.error("Error fixing game:", err.message);
+        res.status(500).json({ error: "Failed to fix game" });
+      } else if (this.changes === 0) {
+        res.status(404).json({ error: "Game not found or already has data" });
+      } else {
+        res.json({ success: true, id });
+      }
+    }
+  );
 });
 
 const PORT = process.env.PORT || 3000;

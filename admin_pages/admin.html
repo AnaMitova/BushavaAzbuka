@@ -85,12 +85,26 @@
             <p class="text-gray-500 font-bold">Управување со Бушава Игротека</p>
           </div>
         </div>
-        <button
-          onclick="window.location.href = 'landin2.html'"
-          class="bg-[#FFD23F] text-temna font-black text-xl py-3 px-6 rounded-2xl border-4 border-[#CCA732] shadow-[0_6px_0_#CCA732] btn-3d"
-        >
-          🏠 Кон Главната Страна
-        </button>
+        <div class="flex gap-3">
+          <button
+            onclick="playClickSound(); loadData()"
+            class="bg-blue-400 text-white font-black text-lg py-3 px-6 rounded-2xl border-4 border-blue-600 shadow-[0_6px_0_#1e40af] btn-3d"
+          >
+            🔄 Освежи Игри
+          </button>
+          <button
+            onclick="playClickSound(); checkDatabase()"
+            class="bg-gray-400 text-white font-black text-lg py-3 px-6 rounded-2xl border-4 border-gray-600 shadow-[0_6px_0_#666] btn-3d"
+          >
+            🔧 Проверка БД
+          </button>
+          <button
+            onclick="playClickSound(); window.location.href = 'landin2.html'"
+            class="bg-[#FFD23F] text-temna font-black text-xl py-3 px-6 rounded-2xl border-4 border-[#CCA732] shadow-[0_6px_0_#CCA732] btn-3d"
+          >
+            🏠 Кон Главната Страна
+          </button>
+        </div>
       </header>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
@@ -100,7 +114,7 @@
           >
             <h2 class="text-3xl font-black text-temna">🎮 Игри</h2>
             <button
-              onclick="openModal()"
+              onclick="playClickSound(); openModal()"
               class="bg-[#4CAF50] text-white font-black text-lg py-2 px-5 rounded-xl border-4 border-[#2E7D32] shadow-[0_4px_0_#2E7D32] btn-3d"
             >
               + Нова Игра
@@ -179,7 +193,7 @@
         class="bg-white w-full max-w-lg rounded-[2rem] border-4 border-[#D0D0D0] shadow-2xl p-6 md:p-8 relative"
       >
         <button
-          onclick="closeModal()"
+          onclick="playClickSound(); closeModal()"
           class="absolute top-4 right-4 text-gray-400 hover:text-toplaCrvena text-3xl font-black btn-3d"
         >
           ✖
@@ -262,10 +276,53 @@
     </div>
 
     <script>
+      // --- AUDIO SYSTEM ---
+      let audioEnabled = true;
+      let audioContext = null;
+      
+      function getAudioContext() {
+        if (!audioContext) {
+          try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          } catch (e) {
+            console.warn('Audio context not available:', e);
+            return null;
+          }
+        }
+        return audioContext;
+      }
+      
+      function playClickSound() {
+        if (!audioEnabled) return;
+        try {
+          const ctx = getAudioContext();
+          if (!ctx) return;
+          
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          osc.frequency.value = 600;
+          osc.type = 'sine';
+          
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          
+          osc.start(now);
+          osc.stop(now + 0.1);
+        } catch (e) {
+          console.warn('Error playing sound:', e);
+        }
+      }
+      
       // --- 1. ЛОГИН СИСТЕМ ---
       function checkPin() {
         const pin = document.getElementById("pin-input").value;
         if (pin === "1234") {
+          playClickSound();
           // Брутално гасење на логин екранот (посилно од сите CSS класи)
           document
             .getElementById("login-screen")
@@ -289,22 +346,37 @@
       let badWords = [];
 
       function loadData() {
-        games = JSON.parse(localStorage.getItem("b_games")) || [
-          {
-            id: 1,
-            title: "Бушаво Слово",
-            icon: "🔤",
-            color: "#FF9B71",
-            url: "igra1",
-          },
-          {
-            id: 2,
-            title: "Збороград",
-            icon: "🧩",
-            color: "#64B5F6",
-            url: "igra2",
-          },
-        ];
+        console.log('loadData() called');
+        // Fetch games from API instead of localStorage
+        fetch('/api/games')
+          .then(res => {
+            console.log('Response status:', res.status);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            console.log('Raw games from API:', data);
+            if (!Array.isArray(data)) {
+              throw new Error('API did not return an array');
+            }
+            games = data.map(g => ({
+              id: g.id,
+              title: g.name || 'Без име',
+              icon: g.emoji || '🎮',
+              url: g.url || ''
+            }));
+            console.log('Games mapped:', games);
+            console.log('Total games to render:', games.length);
+            renderGames();
+          })
+          .catch(err => {
+            console.error('Error loading games:', err);
+            alert('Грешка при вчитување на игрите: ' + err.message);
+            // Fallback to empty array if API fails
+            games = [];
+            renderGames();
+          });
+        
         names = JSON.parse(localStorage.getItem("b_names")) || [
           "Ана",
           "Марко",
@@ -316,7 +388,6 @@
           "идиот",
         ];
 
-        renderGames();
         renderNames();
         renderBadWords();
       }
@@ -329,24 +400,33 @@
 
       // --- 3. ИГРИ (CRUD) ---
       function renderGames() {
+        console.log('renderGames() called with', games.length, 'games');
         const container = document.getElementById("games-container");
         container.innerHTML = "";
-        games.forEach((g) => {
+        
+        if (!games || games.length === 0) {
+          console.log('No games to render, showing empty state');
+          container.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-2xl font-black text-gray-400">Нема игри</p></div>';
+          return;
+        }
+        
+        games.forEach((g, index) => {
+          console.log(`Rendering game ${index + 1}:`, g);
           container.innerHTML += `
                     <div class="bg-white rounded-3xl border-4 border-gray-200 p-4 shadow-sm flex flex-col">
-                        <div class="rounded-2xl p-4 flex items-center gap-3 text-white mb-4" style="background-color: ${g.color}; border: 4px solid rgba(0,0,0,0.1);">
-                            <div class="text-3xl bg-white w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-black border-2 border-white/50">${g.icon}</div>
+                        <div class="rounded-2xl p-4 flex items-center gap-3 text-white mb-4 bg-gradient-to-r" style="background: linear-gradient(to right, #FF9B71, #FF6B3D); border: 4px solid rgba(0,0,0,0.1);">
+                            <div class="text-3xl bg-white w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-black border-2 border-white/50">${g.icon || '🎮'}</div>
                             <h3 class="text-xl font-black leading-tight" style="text-shadow: 2px 2px 0 rgba(0,0,0,0.2);">${g.title}</h3>
                         </div>
                         <p class="text-xs font-mono bg-gray-100 p-2 rounded-lg mb-4 text-gray-500 overflow-hidden truncate">📂 ${g.url || "Нема патека"}</p>
                         <div class="flex gap-2 mt-auto">
-                            <button onclick="editGame(${g.id})" class="flex-1 bg-gray-100 font-bold py-2 rounded-xl border-2 border-gray-300 btn-3d text-sm">✏️ Уреди</button>
-                            <button onclick="deleteGame(${g.id})" class="flex-1 bg-red-50 text-toplaCrvena font-bold py-2 rounded-xl border-2 border-red-200 btn-3d text-sm">🗑️ Бриши</button>
+                            <button onclick="playClickSound(); editGame(${g.id})" class="flex-1 bg-gray-100 font-bold py-2 rounded-xl border-2 border-gray-300 btn-3d text-sm">✏️ Уреди</button>
+                            <button onclick="playClickSound(); deleteGame(${g.id})" class="flex-1 bg-red-50 text-toplaCrvena font-bold py-2 rounded-xl border-2 border-red-200 btn-3d text-sm">🗑️ Бриши</button>
                         </div>
                     </div>
                 `;
         });
-        saveData();
+        console.log('Finished rendering', games.length, 'games');
       }
 
       function openModal() {
@@ -361,20 +441,63 @@
 
       function saveGame(e) {
         e.preventDefault();
+        playClickSound();
         const id = document.getElementById("g-id").value;
-        const newGame = {
-          id: id ? Number(id) : Date.now(),
-          title: document.getElementById("g-title").value,
-          icon: document.getElementById("g-icon").value,
-          color: document.getElementById("g-color").value,
-          url: document.getElementById("g-url").value,
-        };
+        const name = document.getElementById("g-title").value;
+        const emoji = document.getElementById("g-icon").value;
+        const url = document.getElementById("g-url").value;
+        
+        if (!name || !emoji || !url) {
+          alert("Сите полиња се задолжителни!");
+          return;
+        }
+        
         if (id) {
-          const idx = games.findIndex((g) => g.id == id);
-          games[idx] = newGame;
-        } else games.push(newGame);
-        renderGames();
-        closeModal();
+          // Update existing game
+          fetch(`/api/games/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, emoji, url })
+          })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            const idx = games.findIndex(g => g.id == id);
+            if (idx >= 0) {
+              games[idx] = { id, title: name, icon: emoji, url };
+            }
+            renderGames();
+            closeModal();
+            alert('Игра успешно ажурирана!');
+          })
+          .catch(err => {
+            console.error('Error updating game:', err);
+            alert('Грешка при ажурирање на играта: ' + err.message);
+          });
+        } else {
+          // Create new game
+          fetch('/api/games', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, emoji, url })
+          })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            games.push({ id: data.id, title: name, icon: emoji, url });
+            renderGames();
+            closeModal();
+            alert('Игра успешно креирана!');
+          })
+          .catch(err => {
+            console.error('Error creating game:', err);
+            alert('Грешка при креирање на играта: ' + err.message);
+          });
+        }
       }
 
       function editGame(id) {
@@ -382,7 +505,6 @@
         document.getElementById("g-id").value = g.id;
         document.getElementById("g-title").value = g.title;
         document.getElementById("g-icon").value = g.icon;
-        document.getElementById("g-color").value = g.color;
         document.getElementById("g-url").value = g.url;
         document.getElementById("modal-title").innerText = "Уреди Игра";
         document.getElementById("game-modal").classList.remove("hidden");
@@ -390,8 +512,20 @@
 
       function deleteGame(id) {
         if (confirm("Избриши игра?")) {
-          games = games.filter((g) => g.id !== id);
-          renderGames();
+          fetch(`/api/games/${id}`, { method: 'DELETE' })
+            .then(res => {
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              return res.json();
+            })
+            .then(data => {
+              games = games.filter(g => g.id !== id);
+              renderGames();
+              alert('Игра успешно избришена!');
+            })
+            .catch(err => {
+              console.error('Error deleting game:', err);
+              alert('Грешка при бришење на играта: ' + err.message);
+            });
         }
       }
 
@@ -401,12 +535,13 @@
         c.innerHTML = "";
         names.forEach(
           (n, i) =>
-            (c.innerHTML += `<div class="bg-white border-2 border-gray-300 py-1 px-3 rounded-full font-bold flex items-center gap-1 text-sm"><span>${n}</span><button onclick="names.splice(${i},1); renderNames();" class="text-red-400 font-black ml-1 scale-125 hover:text-red-600">×</button></div>`),
+            (c.innerHTML += `<div class="bg-white border-2 border-gray-300 py-1 px-3 rounded-full font-bold flex items-center gap-1 text-sm"><span>${n}</span><button onclick="playClickSound(); names.splice(${i},1); renderNames();" class="text-red-400 font-black ml-1 scale-125 hover:text-red-600">×</button></div>`),
         );
         saveData();
       }
       function addName(e) {
         e.preventDefault();
+        playClickSound();
         const v = document.getElementById("new-name").value.trim();
         if (v && !names.includes(v)) {
           names.push(v);
@@ -421,12 +556,13 @@
         c.innerHTML = "";
         badWords.forEach(
           (w, i) =>
-            (c.innerHTML += `<div class="bg-red-50 border-2 border-red-200 text-red-700 py-1 px-3 rounded-md font-bold flex items-center gap-2 text-sm"><span>${w}</span><button onclick="badWords.splice(${i},1); renderBadWords();" class="text-red-500 font-black hover:text-red-800">✖</button></div>`),
+            (c.innerHTML += `<div class="bg-red-50 border-2 border-red-200 text-red-700 py-1 px-3 rounded-md font-bold flex items-center gap-2 text-sm"><span>${w}</span><button onclick="playClickSound(); badWords.splice(${i},1); renderBadWords();" class="text-red-500 font-black hover:text-red-800">✖</button></div>`),
         );
         saveData();
       }
       function addBadWord(e) {
         e.preventDefault();
+        playClickSound();
         const v = document
           .getElementById("new-badword")
           .value.trim()
@@ -436,6 +572,25 @@
           renderBadWords();
         }
         document.getElementById("new-badword").value = "";
+      }
+
+      // Debug function to check database
+      function checkDatabase() {
+        fetch('/api/games-debug')
+          .then(res => res.json())
+          .then(data => {
+            console.log('Database Debug Info:', data);
+            let msg = `Број на игри во БД: ${data.count}\n\n`;
+            if (data.games && data.games.length > 0) {
+              data.games.forEach(g => {
+                msg += `ID: ${g.id}, Име: ${g.name}, Емоџи: ${g.emoji || 'НЕДОСТАСУВА'}, URL: ${g.url || 'НЕДОСТАСУВА'}\n`;
+              });
+            } else {
+              msg += 'Нема игри во базата!';
+            }
+            alert(msg);
+          })
+          .catch(err => alert('Грешка: ' + err.message));
       }
     </script>
   </body>

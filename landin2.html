@@ -159,14 +159,14 @@
                     _
                 </span>
     
-                <button onclick="deleteLetter()" class="absolute right-2 bg-[#EE4266] text-white font-black text-lg px-3 py-1 rounded-xl active:bg-red-600 border-2 border-[#C2185B] shadow-[0_3px_0_#C2185B] click-pop">
+                <button onclick="playClickSound(); deleteLetter()" class="absolute right-2 bg-[#EE4266] text-white font-black text-lg px-3 py-1 rounded-xl active:bg-red-600 border-2 border-[#C2185B] shadow-[0_3px_0_#C2185B] click-pop">
                     ⌫
                 </button>
             </div>
     
             <div id="keyboard" class="grid grid-cols-7 gap-1.5 mb-4 w-full max-w-lg scale-90 origin-top"></div>
     
-            <button onclick="finishSetup()" class="w-full max-w-xs bg-[#4CAF50] text-white text-xl md:text-2xl font-black py-2 rounded-[1.5rem] shadow-[0_6px_0_#2E7D32] border-4 border-[#2E7D32] btn-3d z-20">
+            <button onclick="playClickSound(); finishSetup()" class="w-full max-w-xs bg-[#4CAF50] text-white text-xl md:text-2xl font-black py-2 rounded-[1.5rem] shadow-[0_6px_0_#2E7D32] border-4 border-[#2E7D32] btn-3d z-20">
                 ОДИМЕ! 
             </button>
         </div>
@@ -175,7 +175,7 @@
     <!-- HEADER -->
     <header id="global-header" class="w-full flex justify-between items-center p-4 md:p-6 bg-white/90 backdrop-blur-md shadow-md z-40 shrink-0 hidden border-b-4 border-[#E0E0E0]">
         
-        <button onclick="goToHome()" class="bg-[#FFD23F] text-temna font-black text-xl md:text-2xl py-2 px-5 rounded-2xl border-2 border-[#D4AC0D] shadow-[0_6px_0_#D4AC0D] btn-3d flex items-center gap-2">
+        <button onclick="playClickSound(); goToHome()" class="bg-[#FFD23F] text-temna font-black text-xl md:text-2xl py-2 px-5 rounded-2xl border-2 border-[#D4AC0D] shadow-[0_6px_0_#D4AC0D] btn-3d flex items-center gap-2">
             <span>Назад</span>
         </button>
         
@@ -184,7 +184,7 @@
             <span id="header-name" class="text-2xl font-black text-bukvozderBlue">Сонце</span>
         </div>
 
-        <button id="audio-btn" onclick="toggleAudio()" class="bg-[#64B5F6] text-white font-black text-2xl py-2 px-5 rounded-2xl border-2 border-[#1E88E5] shadow-[0_6px_0_#1E88E5] btn-3d">
+        <button id="audio-btn" onclick="playClickSound(); toggleAudio()" class="bg-[#64B5F6] text-white font-black text-2xl py-2 px-5 rounded-2xl border-2 border-[#1E88E5] shadow-[0_6px_0_#1E88E5] btn-3d">
             🔊
         </button>
     </header>
@@ -287,159 +287,11 @@
             <!-- GAMES SECTION -->
             <section class="relative px-5 md:px-12 py-12 md:py-16">
     
-                <!-- road -->
-                <!-- <div
-                    class="hidden lg:block absolute left-1/2 top-0 bottom-0 w-5 bg-[#FFD965] rounded-full -translate-x-1/2 opacity-80">
-                </div> -->
-    
-                <div class="space-y-10 relative z-10">
-    
-                    <!-- GAME 1 -->
-                    <div class="flex flex-col lg:flex-row items-center gap-6">
-    
-                        <div
-                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#FF9B71] to-[#FF6B3D] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
-    
-                            <div class="w-16 h-16 rounded-[22px] bg-white/30 backdrop-blur-md border border-white/40"></div>
-    
-                            <div
-                                class="absolute -top-2 -right-2 bg-white rounded-full px-3 py-1 text-sm font-black text-[#FF6B3D] shadow">
-                                NEW
-                            </div>
-                        </div>
-    
-                        <div onclick="openUnityGame('Бушаво Слово')"
-                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#FFD4C7] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
-    
-                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-    
-                                <div>
-                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
-                                        Бушаво Слово
-                                    </h2>
-    
-                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
-                                        Научи букви, зборови и изговор преку весели игри и анимации.
-                                    </p>
-                                </div>
-    
-                                <button
-                                    class="bg-gradient-to-r from-[#FF8B5E] to-[#FF6B3D] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
-                                    ИГРАЈ
-                                </button>
-    
-                            </div>
-                        </div>
+                <div id="games-container" class="space-y-10 relative z-10">
+                    <!-- Games will be loaded here dynamically -->
+                    <div class="text-center py-12">
+                        <p class="text-2xl font-black text-gray-500">Се вчитуваат игрите...</p>
                     </div>
-    
-                    <!-- GAME 2 -->
-                    <div class="flex flex-col lg:flex-row-reverse items-center gap-6">
-    
-                        <div
-                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#5CCBFF] to-[#2D9CFF] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
-    
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="w-6 h-6 rounded-lg bg-white/80"></div>
-                                <div class="w-6 h-6 rounded-lg bg-white/60"></div>
-                                <div class="w-6 h-6 rounded-lg bg-white/60"></div>
-                                <div class="w-6 h-6 rounded-lg bg-white/80"></div>
-                            </div>
-                        </div>
-    
-                        <div onclick="openUnityGame('Збороград')"
-                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#D6F1FF] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
-    
-                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-    
-                                <div>
-                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
-                                        Збороград
-                                    </h2>
-    
-                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
-                                        Решавај загатки и откривај нови зборови низ забавни предизвици.
-                                    </p>
-                                </div>
-    
-                                <button
-                                    class="bg-gradient-to-r from-[#49BFFF] to-[#2D9CFF] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
-                                    ИГРАЈ
-                                </button>
-    
-                            </div>
-                        </div>
-                    </div>
-    
-                    <!-- GAME 3 -->
-                    <div class="flex flex-col lg:flex-row items-center gap-6">
-    
-                        <div
-                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#FFE26A] to-[#FFBE0B] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
-    
-                            <div class="w-16 h-16 rounded-full border-4 border-white/70"></div>
-                        </div>
-    
-                        <div onclick="openUnityGame('Бушава Трага')"
-                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#FFF0B7] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
-    
-                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-    
-                                <div>
-                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
-                                        Бушава Трага
-                                    </h2>
-    
-                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
-                                        Цртај, бои и следи форми во креативен свет полн со бои.
-                                    </p>
-                                </div>
-    
-                                <button
-                                    class="bg-gradient-to-r from-[#FFD84D] to-[#FFBE0B] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
-                                    ИГРАЈ
-                                </button>
-    
-                            </div>
-                        </div>
-                    </div>
-    
-                    <!-- GAME 4 -->
-                    <div class="flex flex-col lg:flex-row-reverse items-center gap-6">
-    
-                        <div
-                            class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br from-[#FF7DA0] to-[#F0446D] border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center">
-    
-                            <div class="flex gap-2">
-                                <div class="w-4 h-10 rounded-full bg-white/80"></div>
-                                <div class="w-4 h-16 rounded-full bg-white/60"></div>
-                                <div class="w-4 h-8 rounded-full bg-white/80"></div>
-                            </div>
-                        </div>
-    
-                        <div onclick="openUnityGame('Буквобег')"
-                            class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl border-4 border-[#FFD9E3] cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300">
-    
-                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-    
-                                <div>
-                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
-                                        Буквобег
-                                    </h2>
-    
-                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
-                                        Трчај, скокај и фаќај букви низ брзи и смешни авантури.
-                                    </p>
-                                </div>
-    
-                                <button
-                                    class="bg-gradient-to-r from-[#FF6B92] to-[#F0446D] text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
-                                    ИГРАЈ
-                                </button>
-    
-                            </div>
-                        </div>
-                    </div>
-    
                 </div>
     
             </section>
@@ -496,11 +348,68 @@
             {bg: '#bdb2ff', dark: '#988dd4'},
             {bg: '#ffc6ff', dark: '#d99cd9'}
         ];
+
+        // Game color schemes for emoji backgrounds
+        const gameColorSchemes = [
+            {gradient: 'from-[#FF9B71] to-[#FF6B3D]', borderColor: 'border-[#FFD4C7]', buttonGradient: 'from-[#FF8B5E] to-[#FF6B3D]'},
+            {gradient: 'from-[#5CCBFF] to-[#2D9CFF]', borderColor: 'border-[#D6F1FF]', buttonGradient: 'from-[#49BFFF] to-[#2D9CFF]'},
+            {gradient: 'from-[#FFE26A] to-[#FFBE0B]', borderColor: 'border-[#FFF0B7]', buttonGradient: 'from-[#FFD84D] to-[#FFBE0B]'},
+            {gradient: 'from-[#FF7DA0] to-[#F0446D]', borderColor: 'border-[#FFD9E3]', buttonGradient: 'from-[#FF6B92] to-[#F0446D]'},
+        ];
         
         let currentName = "";
+        let isAdmin = false;
+        let audioEnabled = true;
+        let audioContext = null;
+        let loadingInterval = null;
         
-        window.onload = () => {
+        // Initialize audio context once
+        function getAudioContext() {
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Audio context not available:', e);
+                    return null;
+                }
+            }
+            return audioContext;
+        }
+        
+        // Create Web Audio API click sound
+        function playClickSound() {
+            if (!audioEnabled) return;
+            
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                
+                // Simple beep sound
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.frequency.value = 800;
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } catch (e) {
+                // Silently fail if audio doesn't work
+                console.debug('Audio playback failed:', e);
+            }
+        }
+        
+        // Initialize keyboard and name buttons
+        function initializeKeyboard() {
             const kb = document.getElementById('keyboard');
+            if (!kb) return;
+            kb.innerHTML = '';
+            
             mkAlphabet.forEach((letter, i) => {
                 const btn = document.createElement('button');
                 btn.innerText = letter;
@@ -508,14 +417,19 @@
                 btn.style.backgroundColor = c.bg;
                 btn.style.borderColor = c.dark;
                 btn.style.boxShadow = `0 4px 0 ${c.dark}`;
-                
                 btn.className = "click-pop border-2 rounded-xl text-xl md:text-3xl font-black text-temna p-3";
-                btn.onclick = () => addLetter(letter);
+                btn.onclick = () => {
+                    playClickSound();
+                    addLetter(letter);
+                };
                 kb.appendChild(btn);
             });
 
             const shuffledNames = predefinedNamesList.sort(() => 0.5 - Math.random()).slice(0, 5);
             const namesContainer = document.getElementById('random-names-container');
+            if (!namesContainer) return;
+            namesContainer.innerHTML = '';
+            
             shuffledNames.forEach((name, i) => {
                 const btn = document.createElement('button');
                 btn.innerText = name;
@@ -524,20 +438,34 @@
                 btn.style.borderColor = c.dark;
                 btn.style.boxShadow = `0 4px 0 ${c.dark}`;
                 btn.className = "click-pop text-temna font-black py-2 px-5 rounded-full border-2 text-lg md:text-xl";
-                btn.onclick = () => setPredefinedName(name);
+                btn.onclick = () => {
+                    playClickSound();
+                    setPredefinedName(name);
+                };
                 namesContainer.appendChild(btn);
             });
+        }
 
+        window.onload = () => {
             const splashScreen = document.getElementById('screen-splash');
             const splashBar = document.getElementById('splash-bar');
             
-            setTimeout(() => { splashBar.style.width = '100%'; }, 100);
+            // Start progress bar
+            setTimeout(() => { 
+                splashBar.style.width = '100%';
+            }, 100);
             
+            // After 1.8 seconds, transition to welcome screen
             setTimeout(() => {
                 splashScreen.classList.add('fade-out');
                 setTimeout(() => {
                     splashScreen.classList.remove('active');
                     document.getElementById('screen-welcome').classList.add('active');
+                    // Initialize after shown
+                    setTimeout(() => {
+                        initializeKeyboard();
+                        loadGames();
+                    }, 100);
                 }, 500);
             }, 1800);
         };
@@ -592,13 +520,104 @@ function finishSetup() {
     document.getElementById('global-header').classList.remove('hidden');
 }
 
-        let audioEnabled = true;
-        let loadingInterval;
-
         function toggleAudio() {
             audioEnabled = !audioEnabled;
             document.getElementById('audio-btn').innerText = audioEnabled ? "🔊" : "🔈";
+            // Play a sound when toggling audio on
+            if (audioEnabled) {
+                playClickSound();
+            }
         }
+
+        // Load games from API and render them
+        async function loadGames() {
+            try {
+                // Check if user is admin
+                const authRes = await fetch('/api/auth/check');
+                const authData = await authRes.json();
+                isAdmin = authData.loggedin;
+                
+                const response = await fetch('/api/games');
+                const games = await response.json();
+                renderGames(games);
+            } catch (error) {
+                console.error('Error loading games:', error);
+                document.getElementById('games-container').innerHTML = 
+                    '<div class="text-center py-12"><p class="text-2xl font-black text-red-500">Грешка при вчитување на игрите</p></div>';
+            }
+        }
+
+        // Render games with dynamic styling
+        function renderGames(games) {
+            const container = document.getElementById('games-container');
+            container.innerHTML = '';
+
+            if (games.length === 0) {
+                container.innerHTML = '<div class="text-center py-12"><p class="text-2xl font-black text-gray-500">Нема достапни игри</p></div>';
+                return;
+            }
+
+            games.forEach((game, index) => {
+                const colors = gameColorSchemes[index % gameColorSchemes.length];
+                const isReverse = index % 2 === 1;
+                
+                const adminControls = isAdmin ? `
+                    <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition duration-300">
+                        <button onclick="deleteGameFromMain(${game.id}, event)" class="bg-red-500 hover:bg-red-600 text-white font-black px-4 py-2 rounded-lg border-2 border-red-700 shadow-lg">
+                            🗑️ Бриши
+                        </button>
+                    </div>
+                ` : '';
+                
+                const gameHTML = `
+                    <div class="flex flex-col ${isReverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-6">
+                        <div class="relative shrink-0 w-40 h-40 rounded-full bg-gradient-to-br ${colors.gradient} border-[10px] border-white shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex items-center justify-center text-6xl">
+                            ${game.emoji || '🎮'}
+                        </div>
+                        
+                        <div class="group w-full bg-white rounded-[40px] p-8 md:p-10 shadow-xl ${colors.borderColor} border-4 cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition duration-300 relative"
+                            onclick="!event.target.closest('button') && openUnityGame('${game.name.replace(/'/g, "\\'")}')"
+                        >
+                            ${adminControls}
+                            
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                                <div>
+                                    <h2 class="text-4xl md:text-5xl font-black text-[#2B2B2B]">
+                                        ${game.name}
+                                    </h2>
+                                    <p class="mt-4 text-lg md:text-xl text-gray-500 font-semibold leading-relaxed">
+                                        Кликни за да играш ${game.name} и се забавувај додека учиш!
+                                    </p>
+                                </div>
+                                
+                                <button
+                                    class="bg-gradient-to-r ${colors.buttonGradient} text-white font-black text-xl px-8 py-4 rounded-3xl shadow-lg hover:scale-105 transition">
+                                    ИГРАЈ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += gameHTML;
+            });
+        }
+
+        function deleteGameFromMain(gameId, event) {
+            event.stopPropagation();
+            if (confirm("Сигурно барате избришување на оваа игра?")) {
+                fetch(`/api/games/${gameId}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        loadGames();
+                    })
+                    .catch(err => {
+                        console.error('Error deleting game:', err);
+                        alert('Грешка при бришење на играта');
+                    });
+            }
+        }
+
+
 
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'fade-out'));
@@ -607,7 +626,18 @@ function finishSetup() {
 
         function goToHome() {
             clearInterval(loadingInterval);
-            switchScreen('screen-home');
+            // Reset to name selection screen
+            currentName = "";
+            updateNameDisplay();
+            document.getElementById('global-header').classList.add('hidden');
+            document.getElementById('screen-home').classList.remove('active');
+            
+            // Remove inline display style set by finishSetup()
+            const welcome = document.getElementById('screen-welcome');
+            welcome.style.display = '';
+            
+            initializeKeyboard();
+            switchScreen('screen-welcome');
         }
 
         function openUnityGame(gameTitle) {
