@@ -9,6 +9,7 @@ const db = new sqlite3.Database("./database.sqlite");
 
 // Middleware to understand form data and sessions
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "fallback-secret-development-key",
@@ -69,6 +70,72 @@ app.get("/admin", (req, res) => {
   } else {
     res.redirect("/login");
   }
+});
+
+// 5. Bad words API
+app.get("/api/badwords", (req, res) => {
+  db.all("SELECT word FROM words ORDER BY id", (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.json({ words: rows.map((r) => r.word) });
+  });
+});
+
+app.post("/api/badwords", (req, res) => {
+  const { word } = req.body;
+  if (!word || typeof word !== "string") {
+    return res.status(400).json({ error: "Bad word is required" });
+  }
+
+  const normalized = word.trim().toLowerCase();
+  if (!normalized) {
+    return res.status(400).json({ error: "Bad word cannot be empty" });
+  }
+
+  db.run(
+    "INSERT OR IGNORE INTO words (word) VALUES (?)",
+    [normalized],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ error: "Database insert failed" });
+      }
+      db.all("SELECT word FROM words ORDER BY id", (err2, rows) => {
+        if (err2) {
+          return res.status(500).json({ error: "Database error" });
+        }
+        res.json({ words: rows.map((r) => r.word) });
+      });
+    },
+  );
+});
+
+app.delete("/api/badwords/:word", (req, res) => {
+  const word = req.params.word;
+  if (!word || typeof word !== "string") {
+    return res.status(400).json({ error: "Bad word is required" });
+  }
+
+  const normalized = decodeURIComponent(word.trim().toLowerCase());
+  if (!normalized) {
+    return res.status(400).json({ error: "Bad word cannot be empty" });
+  }
+
+  db.run(
+    "DELETE FROM words WHERE word = ?",
+    [normalized],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ error: "Database delete failed" });
+      }
+      db.all("SELECT word FROM words ORDER BY id", (err2, rows) => {
+        if (err2) {
+          return res.status(500).json({ error: "Database error" });
+        }
+        res.json({ words: rows.map((r) => r.word) });
+      });
+    },
+  );
 });
 
 const PORT = process.env.PORT || 3000;
