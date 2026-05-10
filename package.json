@@ -5,8 +5,11 @@
   "main": "postcss.config.js",
   "scripts": {
     "server": "node server.js",
-    "tailwind": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch",
-    "dev": "concurrently \"npm run tailwind\" \"npm run server\""
+    "tailwind:watch": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch",
+    "tailwind:build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --minify",
+    "dev": "concurrently \"npm run tailwind:watch\" \"npm run server\"",
+    "build": "npm run tailwind:build",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",

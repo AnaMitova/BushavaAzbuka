@@ -38,18 +38,18 @@ app.get("/login", (req, res) => {
 
 // 2. Handling the Login Logic
 app.post("/auth", (req, res) => {
-  const { username, password } = req.body;
+  const { password } = req.body;
 
   db.get(
-    "SELECT * FROM admins WHERE username = ? AND password = ?",
-    [username, password], // Note: Passwords here are plain text based on init-db.js. Re-init db to hashed passwords later if doing production!
+    "SELECT * FROM admins WHERE password = ?",
+    [password], // Note: Passwords here are plain text based on init-db.js. Re-init db to hashed passwords later if doing production!
     (err, row) => {
       if (row) {
         req.session.loggedin = true;
         res.redirect("/admin");
       } else {
         res.send(
-          "Incorrect Username and/or Password! <a href='/login'>Try Again</a>",
+          "Incorrect Password! <a href='/login'>Try Again</a>",
         );
       }
     },

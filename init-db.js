@@ -1,3 +1,4 @@
+require("dotenv").config();
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
@@ -10,7 +11,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
     db.run(
       `CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
         )`,
       (err) => {
@@ -22,11 +22,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
           // Example: Insert default admin if table is empty
           db.get("SELECT count(*) as count FROM admins", (err, row) => {
             if (row && row.count === 0) {
-              const defaultUser = "admin";
-              const defaultPass = "admin123"; // In a real app, use hashing like bcrypt
+              const defaultPass = process.env.ADMIN_PASSWORD; // Use environment variable for password
               db.run(
-                "INSERT INTO admins (username, password) VALUES (?, ?)",
-                [defaultUser, defaultPass],
+                "INSERT INTO admins (password) VALUES (?)",
+                [defaultPass],
                 (err) => {
                   if (err) {
                     console.error(
@@ -34,7 +33,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                       err.message,
                     );
                   } else {
-                    console.log("Default admin created (admin/admin123).");
+                    console.log("Default admin created.");
                   }
                   db.close();
                 },
