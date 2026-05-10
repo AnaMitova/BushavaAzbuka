@@ -164,8 +164,8 @@
                 </button>
             </div>
             <p id="badword-error" class="hidden text-center text-sm font-bold text-toplaCrvena mb-4">Bad words not allowed</p>
-    
-            <div id="keyboard" class="grid grid-cols-7 gap-1.5 mb-4 w-full max-w-lg scale-90 origin-top"></div>
+
+            <div id="keyboard" class="grid  grid-cols-7 gap-1.5 mb-4 w-full max-w-lg scale-90 origin-top   justify-center "></div>
     
             <button onclick="finishSetup()" class="w-full max-w-xs bg-[#4CAF50] text-white text-xl md:text-2xl font-black py-2 rounded-[1.5rem] shadow-[0_6px_0_#2E7D32] border-4 border-[#2E7D32] btn-3d z-20">
                 ОДИМЕ! 
@@ -505,6 +505,12 @@
         window.onload = () => {
             const kb = document.getElementById('keyboard');
             mkAlphabet.forEach((letter, i) => {
+                if (i === 28) {
+                    const spacer1 = document.createElement('div');
+                    spacer1.className = 'col-span-2';
+                    kb.appendChild(spacer1);
+                }
+
                 const btn = document.createElement('button');
                 btn.innerText = letter;
                 let c = kbColors[i % kbColors.length];
@@ -515,6 +521,12 @@
                 btn.className = "click-pop border-2 rounded-xl text-xl md:text-3xl font-black text-temna p-3";
                 btn.onclick = () => addLetter(letter);
                 kb.appendChild(btn);
+
+                if (i === 30) {
+                    const spacer2 = document.createElement('div');
+                    spacer2.className = 'col-span-2';
+                    kb.appendChild(spacer2);
+                }
             });
 
             const shuffledNames = predefinedNamesList.sort(() => 0.5 - Math.random()).slice(0, 5);
